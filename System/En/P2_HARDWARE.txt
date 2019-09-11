@@ -1,0 +1,413 @@
++---+                                                                     +---+
+|   |                                                                     |   |
++---+---------------------------------------------------------------------+---+
+    |                                                                     |
+    |                                                                     |
+    |                                                                     |
+    |                           +------------+                            |
+    |                           |            |                            |
+    |                           |   PART 2   |                            |
+    |                           |  HARDWARE  |                            |
+    |                           |            |                            |
+    |                           +------------+                            |
+    |                                                                     |
+    |                                                                     |
+    |                                                                     |
++---+---------------------------------------------------------------------+---+
+|   |                                                                     |   |
++---+                                                                     +---+
+
+                                  CHAPTER 1
+
+-------------------------------------------------------------------------------
+                              INTERRUPT CONTROLLER
+-------------------------------------------------------------------------------
+
+1.1 [ Specifications ]
+
+    LSI Used ................ 8259AC Equivalent × 2
+    IRQ Priority Levels ..... 15 Levels
+
+¤ IRQ Priority and Vector Assignments
+
+ +-----------+------+-------+-------------------------------+-----------+-----+
+ |  Device   | IRQ  | Prior |        Interrupt Name         | Vec. Data | Vec |
+ |   Name    | Num  | -ity  |                               |  T[7:0]   | Num |
+ +-----------+------+-------+-------------------------------+-----------+-----+
+ |           | IR0  |   0   | Timer                         | 00001000  | 08  |
+ |           | IR1  |   1   | Keyboard                      | 00001001  | 09  |
+ |  μPD8259A | IR2  |   2   | CRTV                          | 00001010  | 0A  |
+ | /μPD71059 | IR3  |   3   | Exp. Bus INT0                 | 00001011  | 0B  |
+ |           | IR4  |   4   | RS-232C                       | 00001100  | 0C  |
+ | (MASTER)  | IR5  |   5   | Exp. Bus INT1                 | 00001101  | 0D  |
+ |           | IR6  |   6   | Exp. Bus INT2                 | 00001110  | 0E  |
+ |           | IR7  |   7   | Slave                         | 00001111  | 0F  |
+ +-----------+------+-------+-------------------------------+-----------+-----+
+ |           | IR8  |   8   | Printer(70116)/NDP(80286/386) | 00010000  | 10  |
+ |           | IR9  |   9   | Exp. Bus INT 3 (Disk Drive)   | 00010001  | 11  |
+ |  μPD8259A | IR10 |   10  | Exp. Bus INT 41 (640KB FD)    | 00010010  | 12  |
+ | /μPD71059 | IR11 |   11  | Exp. Bus INT 42 (1MB FD)      | 00010011  | 13  |
+ |           | IR12 |   12  | Exp. Bus INT 5                | 00010100  | 14  |
+ |  (SLAVE)  | IR13 |   13  | Exp. Bus INT 6                | 00010101  | 15  |
+ |           | IR14 |   14  | NDP(70116)/ N/A(80286/386)    | 00010110  | 16  |
+ |           | IR15 |   15  | (System Timer)                | 00010111  | 17  |
+ +-----------+------+-------+-------------------------------+-----------+-----+
+
+ · Bit T[7:3] of both Master and Slave can be independently programmed.
+ · Behavior of IR8 thru IR14 depend on the CPU. Also, 80287/387 IRQ lines are
+   connected directly to the 80286/386; 8259 have no control over it.
+ · In high definition mode, the mouse interrupt is fixed to INT2 (IR6); in
+   normal mode this can be selected from INT0 to 6(default) via a dip switch.
+ · On 98NOTE, PC-9801BA, BX, PC-9821Ap, As, Ae, it is fixed to INT6(IR13).
+ · Do not mask IR15
+ · IR15 is used as a system timer in PC-9821Ap,As, Ae, Af, Ne. 
+   On other models the service routine for IR15 should do nothing and return.
+
+1.2 [ I/O Address & Commands ]
+
+¤ Overview
+ +--------+-----------+----+-------+---------------------------------+--------+
+ | Device | Command   | RW | IO Pt |              DATA               |  Comm  |
+ |  Name  |           |    | Addr  | D7  D6  D5  D4  D3  D2  D1  D0  |  -ent  |
+ +--------+-----------+----+-------+---------------------------------+--------+
+ |        | ICW1      | W  | 00    | 0   0   0   1  LTIM 0   S   1   | S=0    |
+ |        | ICW2      | W  | 02    | T7  T6  T5  T4  T3  0   0   0   | T[3:0] |
+ |        |           |    |       |                                 | =00001 |
+ |        | ICW3      | W  | 02    | 1   0   0   0   0   0   0   0   |        |
+ |        | ICW4      | W  | 02    | 0   0   0  SFNM BUF 1   0   1   | BUF=1  |
+ |        | OCW1      | W  | 02    | M7  M6  M5  M4  M3  M2  M1  M0  |        |
+ | MASTER | OCW2      | W  | 00    | R   SL  EOI 0   0   L2  L1  L0  |        |
+ |        | OCW3      | W  | 00    | 0  ESMM SMM 0   1   P   RR  RIS |        |
+ |        | Pole Mode | R  | 00    | 1   x   x   x   x   W2  W1  W0  |        |
+ |        | IRR Read  | R  | 00    | IR7 IR6 IR5 IR4 IR3 IR2 IR1 IR0 |        |
+ |        | ISR Read  | R  | 00    | IS7 IS6 IS5 IS4 IS3 IS2 IS1 IS0 |        |
+ |        | IMR Read  | R  | 02    | M7  M6  M5  M4  M3  M2  M1  M0  |        |
+ +--------+-----------+----+-------+---------------------------------+--------+
+ |        | ICW1      | W  | 08    | 0   0   0   1  LTIM 0   S   1   | S=0    |
+ |        | ICW2      | W  | 0A    | T7  T6  T5  T4  T3  0   0   0   | T[7:3] |
+ |        |           |    |       |                                 | =00001 |
+ |        | ICW3      | W  | 0A    | 0   0   0   0   0   1   1   1   |        |
+ |        | ICW4      | W  | 0A    | 0   0   0  SFNM BUF 0   0   1   | BUF=1  |
+ |        | OCW1      | W  | 0A    | M15 M14 M13 M12 M11 M10 M9  M8  |        |
+ |        | OCW2      | W  | 08    | R   SL  EOI 0   0   L2  L1  L0  |        |
+ | SLAVE  | OCW3      | W  | 08    | 0  ESMM SMM 0   1   P   RR  RIS |        |
+ |        | Pole Mode | R  | 08    | 1   x   x   x   x   W2  W1  W0  |        |
+ |        | IRR Read  | R  | 08    | IR15        ...         IR9 IR8 |        |
+ |        | ISR Read  | R  | 08    | IS15        ...         IS9 IS8 |        |
+ |        | IMR Read  | R  | 0A    | M15 M14 M13 M12 M11 M10 M9  M8  |        |
+ +--------+-----------+----+-------+---------------------------------+--------+
+
+¤ Register Description
+
+    • Initial Command Word (ICW)
+
+    • Operation Command Word (OCW)
+
+
+1.3 [ Initialization Sequence ]
+
+    • μPD8259A Master Init
+
+                      D7  D6  D5  D4  D3  D2  D1  D0
+                     +---+---+---+---+---+---+---+---+
+                ICW1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 |
+                     +---+---+---+---+---+---+---+---+ 
+                                       |
+                                       '- Use IR signal as edge trigger
+                   
+                     +---+---+---+---+---+---+---+---+
+                ICW2 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+                     +---+---+---+---+---+---+---+---+
+                      '--------v--------'
+                               '---------- Master PIC interrupt vector address
+
+                     +---+---+---+---+---+---+---+---+
+                ICW3 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+                     +---+---+---+---+---+---+---+---+
+                       |
+                       '- Slave PIC is configured here
+                          IR input includes the slave
+
+                     +---+---+---+---+---+---+---+---+
+                ICW4 | 0 | 0 | 0 | 1 | 1 | 1 | 0 | 1 |
+                     +---+---+---+---+---+---+---+---+           
+                                   |  '--v--'
+                                   |     '-- Data bus buffer mode
+                                   '-------- Special free-nested mode
+                                             (Allows nesting of IRQ services)
+    • μPD8259A Slave Init
+
+                      D7  D6  D5  D4  D3  D2  D1  D0
+                     +---+---+---+---+---+---+---+---+
+                ICW1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 |
+                     +---+---+---+---+---+---+---+---+ 
+                                       |
+                                       '- Use IR signal as edge trigger
+                   
+                     +---+---+---+---+---+---+---+---+
+                ICW2 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+                     +---+---+---+---+---+---+---+---+
+                      '--------v--------'
+                               '---------- Master PIC interrupt vector address
+
+                     +---+---+---+---+---+---+---+---+
+                ICW3 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 |
+                     +---+---+---+---+---+---+---+---+
+                                          '----v----'
+                                               '-- Slave ID
+                     +---+---+---+---+---+---+---+---+
+                ICW4 | 0 | 0 | 0 | 1 | 1 | 1 | 0 | 1 |
+                     +---+---+---+---+---+---+---+---+           
+                                   |  '--v--'
+                                   |     '-- Buffer mode
+                                   '-------- Not in special free-nested mode
+
+1.4 [ Configuring PIC ]
+
+1.5 [ NMI (Non Maskable Interrupt) F/F ]
+
+                        +---------+----------+-----+
+                        | Command | I/O Port | R/W |
+                        |         | Address  |     |
+                        +---------+----------+-----+
+                        | Set     |   52     |  W  |
+                        | Reset   |   50     |  W  |
+                        +---------+----------+-----+
+
+  When this F/F is set to "1", NMI will be triggered if a RAM Parity Error is
+encountered. When this F/F is set to "0", the CPU won't receive such NMI.
+  However, no matter this F/F is set or not, one can check for parity error on 
+either the standard RAM or expansion RAM by reading bit D1, (D2) of system port 
+B. This feature is disabled (together with NMI) by setting bit D4 on port C.
+  PC-9801U2 does not come with such function.
+
+
+                                   CHAPTER 2
+                                   
+--------------------------------------------------------------------------------
+                                DMA CONTROLLER
+--------------------------------------------------------------------------------
+
+2.1 Specifications
+
+    LSI Used ............... 8237AC Equivalent
+    Channels ............... 4
+    Transfer Mode .......... Single
+    Cascade Interconnect ... 
+    Data Width ............. 8-bit (16-bit in hi-res mode)
+    Block Size (Max) ....... 64 KByte (128 KByte in hi-res mode)
+                             OMA transfer of G VRAM and T-VRAM isn't guaranteed
+                             OMA in VRAM "graphic charger mode" isn't possible
+
+
+                                  CHAPTER 3
+                                   
+-------------------------------------------------------------------------------
+                                     TIMER
+-------------------------------------------------------------------------------
+
+3.1 Specifications
+
+    LSI Used ............... 8253C Equivalent
+    Counter Width .......... 16-bit
+    Counters ............... 3 sets
+    Count Rate ............. 500.8ns(1.9968MHz): System Clock @ 8 MHz
+                             406.9ns(2.4576MHz): System Clock @ 5/10 MHz
+
+                                  CHAPTER 4
+                                   
+-------------------------------------------------------------------------------
+                                 CALENDAR TIMER
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 5
+                                   
+-------------------------------------------------------------------------------
+                                  SYSTEM BOARD
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 6
+                                   
+-------------------------------------------------------------------------------
+                                    KEYBOARD
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 7
+                                   
+-------------------------------------------------------------------------------
+                                  CRT DISPLAY
+-------------------------------------------------------------------------------
+
+7.1 Specification
+
+¤ Normal Mode
+
+    • 16 Color Mode
+
+        VSync Freq ......... 24.8kHz/31.5kHz*
+        Field Scan Mode .... Not-interlaced
+        Scan Mode .......... Under Scan
+        Coordinate System .. Standard Graphics            640 x 200/400 2 Plane
+                             Extended Graphics            640 x 400 
+                                               ( 16-color palette out of 4096 )
+                             Text Mode                    80 Col x 20/25 Line
+                                               ( 16 x 16 dot, 8 color available
+                                                 per character )
+                             ( Graphics can only in one of the two modes )
+        Output ............. Analog RGB, Digital RGB, Mono
+
+        * PC-9821 Ap, As, Ae, Af scans in 31.5kHz
+
+    • 256 Color Mode
+
+¤ High-res Mode
+
+    • PC-9801LS
+    • PC-9801N
+    • PC-9801NS/NV
+    • PC-9801T Series
+    • PC-98DO+
+    • PC-9801NS/E, NS/T, NS/L, NA, NS/R
+    • PC-9801NL
+    • PC-9801NC, NA/C, NX/C
+    • PC-9801BA, BX
+    • PC-9801Ap, As, Ae, Af
+    • PC-9801Ce
+    • PC-9801Ne
+    • PC-9801P
+
+¤ Resolution Identification
+
+7.2 Text Mode
+
+¤ Overview
+
+¤ Text VRAM
+
+¤ Text Encoding
+
+¤ Font
+
+¤ Display Attributes
+
+¤ Cursor　
+
+7.3 Graphic Display
+
+¤ Overview
+
+¤ Graphic VRAM ( Normal Mode )
+
+¤ Graphic VRAM ( Hi-res Mode )
+
+7.4 I/O Address & Commands
+
+¤ Text Display Control
+
+¤ Line Counter Control
+
+¤ Smooth Scrolling Control ( Normal Mode )
+
+¤ Graphic Commands ( Normal Mode )
+
+¤ Graphic Commands ( Hi-res Mode )
+
+¤ Graphic Charger Commands
+
+¤ EGC
+
+    EGC extended GRCG by adding the following functions (To find out which
+    model has EGC built-in, please refer to Chapter 1 System Overview 
+    - 1.3 Models)
+
+    · GRCG Compatible Mode ( GDC is also available )
+    · 4 Drawing Plane Available in VRAM
+    · Raster Operation
+    · Data Operation in VRAM, Including Bit-shifting
+
+    EGC acts as an agent between CPU and VRAM. It intercepts data coming from
+    the CPU and further processes it. To use the EGC, first configure the EGC
+    registers, then simply execute the "MOVS" instruction.
+    するとCPUが読み込み動作を行ったときにVRAMから送られてくるデータをEGCが取り込み，次にCPUが書き出し動作を行う際に，EGCは書き出しの対象となった VRAMからデータの読み出しを行い，以前からVRAMに有ったデータとCPUが書き込むデータ（およびEGC内部のレジスタ内のデータ）との間でラスタオペレーション（ピットパターン間での演算：以後ROPと記述）を行い，その結果をVRAMに書き出す．
+
+実際の動作では，動作の対象となるプレーンを指定する．指定された色に対応するピットだけを読み出す， ROPの対象となるデータを切り替える，EGC内部のレジスタをシフトさせる，などの指定が可能であり，組み合わせによって様々な動作が可能である．
+
+¤ CG Window
+
+¤ Character Generator Commands ( Normal Mode )
+
+¤ Light Pen ( Normal Mode )
+
+¤ Superimpose ( Normal Mode )
+
+¤ Plasma Display ( Normal Mode )
+
+7.5 256 Color Mode
+
+¤ 256- Color Format
+
+
+                                  CHAPTER 8
+                                  
+-------------------------------------------------------------------------------
+                                 FLOPPY DISK
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 9
+                                  
+-------------------------------------------------------------------------------
+                                HARD DISK DRIVE
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 10
+                                  
+-------------------------------------------------------------------------------
+                             
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 11
+                                  
+-------------------------------------------------------------------------------
+                                   PRINTER
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 1
+                                  
+-------------------------------------------------------------------------------
+                             INTERRUPT CONTROLLER
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 12
+                                  
+-------------------------------------------------------------------------------
+                                   RS-232C
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 13
+                                  
+-------------------------------------------------------------------------------
+                                    GP-IB
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 14
+                                  
+-------------------------------------------------------------------------------
+                                    SOUND
+-------------------------------------------------------------------------------
+
+
+                                  CHAPTER 15
+                                  
+-------------------------------------------------------------------------------
+                           WINDOW ACCELERATOR BOARD
+-------------------------------------------------------------------------------

@@ -1,0 +1,321 @@
++---+                                                                     +---+
+|   |                                                                     |   |
++---+---------------------------------------------------------------------+---+
+    |                                                                     |
+    |                                                                     |
+    |                           +------------+                            |
+    |                           |            |                            |
+    |                           |   PART 3   |                            |
+    |                           |  EXTERNAL  |                            |
+    |                           | INTERFACES |                            |
+    |                           |    SPEC    |                            |
+    |                           |            |                            |
+    |                           +------------+                            |
+    |                                                                     |
+    |                                                                     |
++---+---------------------------------------------------------------------+---+
+|   |                                                                     |   |
++---+                                                                     +---+
+
+                                  CHAPTER 1
+
+-------------------------------------------------------------------------------
+                              EXPANSION SLOT BUS
+-------------------------------------------------------------------------------
+
+1.1 [ Physical Specification ]
+
+¤ Bus Connector
+
+• Bus Slot Signals
+
+  · 8086/70116 Type Bus
+    PC-9801/E/F/M/U2/VF/VM0,2,4/UV/CV/VM11/UF/UR/PC-98DO/DO+
+    PC-9801VM21(Slot #1)/VX0,2,4(Slot #1)
+    PC-9801LV21,22(When connected to PC-9801LV-08)
+
+  +-----+----------+-----+-------------+-----+----------+-----+--------------+
+  | PN  | Sig Name | Dir | Function    | PN  | Sig Name | Dir | Function     |
+  +-----+----------+-----+-------------+-----+----------+-----+--------------+
+  | A1  | GND      |     |             | B1  | GND      |     |              |
+  | A2  | V1       |     |             | B2  | V1       |     |              |
+  | A3  | V2       |     |             | B3  | V2       |     |              |
+  | A4  | AB001    | I/O | Addr Bus    | B4  | DB001    | I/O | Data Bus     |
+  | A5  | AB011    |  "  |  "          | B5  | DB011    |  "  |  "           |
+  | A6  | AB021    |  "  |  "          | B6  | DB021    |  "  |  "           |
+  | A7  | AB031    |  "  |  "          | B7  | DB031    |  "  |  "           |
+  | A8  | AB041    |  "  |  "          | B8  | DB041    |  "  |  "           |
+  | A9  | AB051    |  "  |  "          | B9  | DB051    |  "  |  "           |
+  | A10 | AB061    |  "  |  "          | B10 | DB061    |  "  |  "           |
+  | A11 | GND      |     |             | B11 | GND      |     |              |
+  | A12 | AB071    | I/O | Addr Bus    | B12 | DB071    | I/O | Data Bus     |
+  | A13 | AB081    |  "  |  "          | B13 | DB081    |  "  |  "           |
+  | A14 | AB091    |  "  |  "          | B14 | DB091    |  "  |  "           |
+  | A15 | AB101    |  "  |  "          | B15 | DB101    |  "  |  "           |
+  | A16 | AB111    |  "  |  "          | B16 | DB111    |  "  |  "           |
+  | A17 | AB121    |  "  |  "          | B17 | DB121    |  "  |  "           |
+  | A18 | AB131    |  "  |  "          | B18 | DB131    |  "  |  "           |
+  | A19 | AB141    |  "  |  "          | B19 | DB141    |  "  |  "           |
+  | A20 | AB151    |  "  |  "          | B20 | DB151    |  "  |  "           |
+  | A21 | GND      |     |             | B21 | GND      |     |              |
+  | A22 | AB161    | I/O | Addr Bus    | B22 | +12V     |     |              |
+  | A23 | AB171    |  "  |  "          | B23 | +12V     |     |              |
+  | A24 | AB181    |  "  |  "          | B24 | IR31     |  I  | INT0         |
+  | A25 | AB191    |  "  |  "          | B25 | IR51     |  I  | INT1         |
+  | A26 | AB201    |  "  |  "          | B26 | IR61     |  I  | INT2         |
+  | A27 | AB211    |  "  |  "          | B27 | IR91     |  I  | INT3         |
+  | A28 | AB221    |  "  |  "          | B28 | IR101/111|  I  | INT41/42 (1) |
+  | A29 | AB231    |  "  |  "          | B29 | IR121    |  I  | INT5         |
+  | A30 | INT0     |  O  |             | B30 | IR131    |  I  | INT6         |
+  | A31 | GND      |     |             | B31 | GND      |     |              |
+  | A32 | IOCHK0   |  I  | Ext NMI (2) | B32 | -12V     |     |              |
+  | A33 | IOR0     | I/O | Command     | B33 | -12V     |     |              |
+  | A34 | IOW0     | I/O |  "          | B34 | RESET0   |  O  | RESETn       |
+  | A35 | MRC0     | I/O |  "          | B35 | DACK00   |  O  | HDC          |
+  | A36 | MWC0     | I/O |  "          | B36 | DACK30/20|  O  | AUX (1)      |
+  | A37 | S00     *| I/O | S0          | B37 | DRQ00    |  I  | HDC          |
+  | A38 | S10     *|  I  | S1          | B38 | DRQ30/20 |  I  | AUX (1)      |
+  | A39 | S20     *|  I  | S2          | B39 | WORD0    |  I  |              |
+  | A40 | LOCK0   *|  I  |             | B40 | CPKILL0 *|  I  |              |
+  | A41 | GND      |     |             | B41 | GND      |     |              |
+  | A42 | CPUENB10 |  O  |             | B42 | RQGT0   *| I/O | Bus Rel REQ  |
+  | A43 | RFSH0    |  O  | Refresh Sig | B43 | DMATC0   |  O  | End of Proc  |
+  | A44 | BHE0     | I/O |             | B44 | NMI0     |  O  |              |
+  | A45 | IORDY1   |  I  | Ready Sig   | B45 | MWE0     | I/O |              |
+  | A46 | SCLK1    |  O  | System Clk  | B46 | HLDA00  *|  O  |              |
+  | A47 | S18CLK1  |  O  | 307.2kHz    | B47 | HRQ00   *|  I  |              |
+  | A48 | POWER0   |  O  | Power Valid | B48 | DMAHLD0 *|  I  |              |
+  | A49 | +5V      |     |             | B49 | +5V      |     |              |
+  | A50 | +5V      |     |             | B50 | +5V      |     |              |
+  +-----+----------+-----+-------------+-----+----------+-----+--------------+
+    
+  * : Not available on PC-9801LV21,22+PC-9801LV-08
+  
+  80286, 386, 486, Pentium models have the following differences
+  +-----+-------------+-------------+
+  |     |  8086/70116 | 80286/80386 |
+  +-----+-------------+-------------+
+  | A37 |     S00     |    INTA0    |
+  | A38 |     S01     |   NOWAIT0   |
+  | A39 |     S02     |    SALE1    |
+  | A40 |    LOCK0    |    MACS0    |
+  | B40 |   CPKILL0   |   EXHRQ10   |
+  | B42 |    RQGT0    |   EXHLA10   |
+  | B46 |    HLDA00   |   EXHLA20   |
+  | B47 |    HRQ00    |   EXHRQ20   |
+  | B48 |   DMAHLD0   |   SBUSRQ1   |
+  +-----+-------------+-------------+
+  
+  Note 1: Pin B28, B36, B38 have two possible configurations for each model.
+
+  +-----------------------+---------+-------------+-------------+
+  |                       |   B28   | IR101-INT41 | IR111-INT42 |
+  |                       |   B36   |   DACK30    |   DACK20    |
+  |                       |   B38   |   DRQ30     |   DRQ20     |
+  +-----------------------+---------+-------------+-------------+
+  | PC-9801                         |   #1 ~ #5   |    N/A      |
+  | PC-9801E                        |   #1 ~ #5   |     #6      |
+  | PC-9801F1,2/VF2/VM0,2,4         |   #1 ~ #3   |     #4      |
+  | PC-9801M2                       |   #1 ~ #3   |    N/A      |
+  | PC-9801M3                       |    #2, #3   |    N/A      |
+  | PC-9801F3/U2/UV2/UV21/CV21/UV11 |      #1     |     #2      |
+  | PC-9801VM21(#1)/VX0,2,4(#1)     |      #1     |    N/A      |
+  | PC-9801VM11                     |   #1 ~ #4   |    N/A      |
+  | PC-9801DO                       |     N/A     |     #1      |
+  | PC-9801UR/UF                    |   #1 ~ #2   |    N/A      |
+  | PC-9801T                        |   #1 ~ #2   |    N/A      |
+  | PC-9801DO+                      |      #1     |    N/A      |
+  +---------------------------------+-------------+-------------+
+  
+  Note 2: PC-9801U2 doesn't use pin A32 (IOCHK0)
+
+  · 80286/386/486/Pentium Type Bus
+    PC-9801VX01, 21, 41, UX, RA, RX, EX, ES, RS, T, DX, DS, DA, FA, FS, FX, US,
+    BA, BX
+    PC-9801VM21(Slot #2, 3, 4), VX0, 2, 4(Slot #2, 3, 4)
+    PC-9801LS, LX(When connected to PC-9801LV-08)
+    PC-9821, Ap, As, Ae, Ce, Af
+    PC-98XA, XL, XL², RL, GS
+
+  +-----+----------+-----+-------------+-----+----------+-----+--------------+
+  | PN  | Sig Name | Dir | Function    | PN  | Sig Name | Dir | Function     |
+  +-----+----------+-----+-------------+-----+----------+-----+--------------+
+  | A1  | GND      |     |             | B1  | GND      |     |              |
+  | A2  | V1       |     |             | B2  | V1       |     |              |
+  | A3  | V2       |     |             | B3  | V2       |     |              |
+  | A4  | AB001    | I/O | Addr Bus    | B4  | DB001    | I/O | Data Bus     |
+  | A5  | AB011    |  "  |  "          | B5  | DB011    |  "  |  "           |
+  | A6  | AB021    |  "  |  "          | B6  | DB021    |  "  |  "           |
+  | A7  | AB031    |  "  |  "          | B7  | DB031    |  "  |  "           |
+  | A8  | AB041    |  "  |  "          | B8  | DB041    |  "  |  "           |
+  | A9  | AB051    |  "  |  "          | B9  | DB051    |  "  |  "           |
+  | A10 | AB061    |  "  |  "          | B10 | DB061    |  "  |  "           |
+  | A11 | GND      |     |             | B11 | GND      |     |              |
+  | A12 | AB071    | I/O | Addr Bus    | B12 | DB071    | I/O | Data Bus     |
+  | A13 | AB081    |  "  |  "          | B13 | DB081    |  "  |  "           |
+  | A14 | AB091    |  "  |  "          | B14 | DB091    |  "  |  "           |
+  | A15 | AB101    |  "  |  "          | B15 | DB101    |  "  |  "           |
+  | A16 | AB111    |  "  |  "          | B16 | DB111    |  "  |  "           |
+  | A17 | AB121    |  "  |  "          | B17 | DB121    |  "  |  "           |
+  | A18 | AB131    |  "  |  "          | B18 | DB131    |  "  |  "           |
+  | A19 | AB141    |  "  |  "          | B19 | DB141    |  "  |  "           |
+  | A20 | AB151    |  "  |  "          | B20 | DB151    |  "  |  "           |
+  | A21 | GND      |     |             | B21 | GND      |     |              |
+  | A22 | AB161    | I/O | Addr Bus    | B22 | +12V     |     |              |
+  | A23 | AB171    |  "  |  "          | B23 | +12V     |     |              |
+  | A24 | AB181    |  "  |  "          | B24 | IR31     |  I  | INT0         |
+  | A25 | AB191    |  "  |  "          | B25 | IR51     |  I  | INT1         |
+  | A26 | AB201    |  "  |  "          | B26 | IR61     |  I  | INT2         |
+  | A27 | AB211    |  "  |  "          | B27 | IR91     |  I  | INT3         |
+  | A28 | AB221    |  "  |  "          | B28 | IR101    |  I  | INT41        |
+  | A29 | AB231    |  "  |  "          | B29 | IR121    |  I  | INT5         |
+  | A30 | INT0     |  O  |             | B30 | IR131    |  I  | INT6         |
+  | A31 | GND      |     |             | B31 | GND      |     |              |
+  | A32 | IOCHK0   |  I  | Ext NMI (2) | B32 | -12V     |     |              |
+  | A33 | IOR0     | I/O | Command     | B33 | -12V     |     |              |
+  | A34 | IOW0     | I/O |  "          | B34 | RESET0   |  O  | RESETn       |
+  | A35 | MRC0     | I/O |  "          | B35 | DACK00   |  O  |              |
+  | A36 | MWC0     | I/O |  "          | B36 | DACK30   |  O  |              |
+  | A37 | INTA0    | I/O | Interrupt   | B37 | DRQ00    |  I  |              |
+  | A38 | NOWAIT0  |  I  |             | B38 | DRQ30    |  I  |              |
+  | A39 | SALE1    | I/O | Addr Latch  | B39 | WORD0    |  I  |              |
+  | A40 | MACS0    |  I  |             | B40 | EXHRQ10  |  I  |              |
+  | A41 | GND      |     |             | B41 | GND      |     |              |
+  | A42 | CPUENB10 |  O  |             | B42 | EXHLA10  |  O  |              |
+  | A43 | RFSH0    |  O  | Refresh Sig | B43 | DMATC0   |  O  | End of Proc  |
+  | A44 | BHE0     | I/O |             | B44 | NMI0     |  O  |              |
+  | A45 | IORDY1   |  I  | Ready Sig   | B45 | MWE0     | I/O |              |
+  | A46 | SCLK1    |  O  | System Clk  | B46 | EXHLA20  |  O  |              |
+  | A47 | S18CLK1  |  O  | 307.2kHz    | B47 | EXHRQ20  |  I  |              |
+  | A48 | POWER0   |  O  | Power Valid | B48 | SBUSRQ1  |  O  |              |
+  | A49 | +5V      |     |             | B49 | +5V      |     |              |
+  | A50 | +5V      |     |             | B50 | +5V      |     |              |
+  +-----+----------+-----+-------------+-----+----------+-----+--------------+
+    
+  Note: PC-98XA has different signal connection for each of its slot
+  +------+-----------------------+---------------------------+
+  |      |                       |           PC-98XA         |
+  |  PN  | Signal Name           |------+------+------+------|
+  |      |                       |  #1  |  #2  | #3,5 |  #4  | 
+  +------+-----------------------+------+------+------+------+
+  | B28  | IR101-INT41           |      |  O   |  O   |  O   |
+  |      | IR111-INT42 (1MB FDC) |  O   |      |      |      |
+  | B35  | DACK00                |  O   |  O   |  O   |      |
+  |      | DACK30                |      |      |      |  O   |
+  | B36  | DACK10                |  O   |      |      |      |
+  |      | DACK20                |      |  O   |      |      |
+  |      | DACK30                |      |      |  O   |  O   |
+  | B37  | DRQ00                 |  O   |  O   |  O   |      |
+  |      | DRQ30                 |      |      |      |  O   |
+  | B38  | DRQ10                 |  O   |      |      |      |
+  |      | DRQ20                 |      |  O   |      |      |
+  |      | DRQ30                 |      |      |  O   |  O   |
+  | B40  | EXHRQ10               |      |  O   |  O   |  O   |
+  |      | BANK00                |  O   |      |      |      |
+  +------+-----------------------+------+------+------+------+
+
+¤ Signal Overview
+
+  · AB001~AB191 Address Bus
+
+  · BHE0 Bus High Enable
+
+  · DB001~DB151 Data Bus
+
+  · IOR0 IO Read
+
+  · IOW0 IO Write
+
+  · MRC0 Memory Read
+
+  · MWC0 Memory Write
+
+  · MWE0 Memory Write Enable
+
+  · RFSH0 Refresh
+
+  · IR31,IR51,IR61(Master PIC), IR91,IR101,IR121,IR131(Slave PIC) Interrupt Req
+  
+  · IOCHK0 Non-maskable Interrupt Signal
+
+  · INT0 (Maskable)Interrupt
+
+  · NMI0 (Non-maskable) Interrupt
+
+  · SCLK1 System Clock
+
+  · S18CLK1 (307.2kHz)
+
+  · POWER0 Power Valid
+
+  · RESET0 Reset Signal
+
+  · DRQ00,DRQ10,DRQ20,DRQ30 DMA Request
+  · DACK00,DACK30 DMA Acknowledge
+
+  · WORD0 Word/Byte
+
+  · DMATC0 DMA Terminal Count
+
+  · CPUENB10 CPU Enable
+
+  · IORDY1 IO Ready
+
+  · GND Ground
+  · +5V +5V Power Rail
+  · +12V +12V Power Rail
+  · -12V -12V Power Rail
+  · V1,V2 Optional Power Rail
+
+  Slot #0,2,4 of PC-9801VX have the following signals. These signals are valid
+  during 80286/386/486/Pentium CPU operation.
+
+  · AB201~AB231 Address Bus
+
+  · EXHRQ10/EXHRQ20 Hold Request Signal
+    Bus request from an external CPU/DMA.
+
+  · EXHLA10/EXHLA20 Hold Acknowledge Signal
+    Bus request granted signal for the external CPU/DMA.
+
+  · SBUSRQ1 Bus Release Request Signal
+
+  · NOWAIT0 No-Wait Signal
+
+  · SALE1 High Address Bus Latch Signal
+
+  · INTA0 External CPU Data Request Signal
+
+  · MACS0 Memory Board Self-Refreshing Signal
+
+  The following signals are used by 8086/70116 type expansion slots (valid
+  during 8086/70116 CPU operation)
+
+  · LOCK0 Lock Signal
+    CPU lock
+
+  · S00~S20 CPU Status Signal
+    CPU (Maximum Mode) status signal
+
+  · CPKILL0
+    Internal CPU is off the bus. Address output prohibited.
+
+  · RQ/GT0 Request/Grant Signal
+
+  · DMAHLD0 DMA Hold
+
+  · HRQ00 Hold Request Signal
+
+  · HLDA00 Hold Acknowledged
+    The hold acknowledged signal from the CPU.
+
+1.2 [ DC Characteristics ]
+
+1.3 [ AC Characteristics ]
+
+1.4 [ Timing Chart ]
+
+1.5 [ DMA Transfer Capabilities ]
+
+1.6 [ Expansion Slot Dimensions ]
+
