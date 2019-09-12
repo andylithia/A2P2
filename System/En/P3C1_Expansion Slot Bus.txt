@@ -200,19 +200,93 @@
   +------+-----------------------+------+------+------+------+
   | B28  | IR101-INT41           |      |  O   |  O   |  O   |
   |      | IR111-INT42 (1MB FDC) |  O   |      |      |      |
+  +------+-----------------------+------+------+------+------+
   | B35  | DACK00                |  O   |  O   |  O   |      |
   |      | DACK30                |      |      |      |  O   |
+  +------+-----------------------+------+------+------+------+
   | B36  | DACK10                |  O   |      |      |      |
   |      | DACK20                |      |  O   |      |      |
   |      | DACK30                |      |      |  O   |  O   |
+  +------+-----------------------+------+------+------+------+
   | B37  | DRQ00                 |  O   |  O   |  O   |      |
   |      | DRQ30                 |      |      |      |  O   |
+  +------+-----------------------+------+------+------+------+
   | B38  | DRQ10                 |  O   |      |      |      |
   |      | DRQ20                 |      |  O   |      |      |
   |      | DRQ30                 |      |      |  O   |  O   |
+  +------+-----------------------+------+------+------+------+
   | B40  | EXHRQ10               |      |  O   |  O   |  O   |
   |      | BANK00                |  O   |      |      |      |
   +------+-----------------------+------+------+------+------+
+
+  · Notebook Type Bus
+    98NOTE has an expansion port on its back. This port can be connected to the
+    following peripheral devices.
+
+    a) I/O Expansion Unit (PC-9801N-08)
+      This expansion unit adds three PC-9800 series expansion slots to a 98NOTE
+
+    b) Additional Floppy Drive Unit
+      By connecting a proprietary floppy disk drive expansion cable 
+      (PC-9801N-15) or installing a relay box in your I/O expansion unit, 
+      98NOTE can interface with the following devices:
+
+      · PC-9831-MF2
+      · PC-9831-VW2
+      · PC-9831-MW
+      · PC-FD511(R)/512(R)/311(R)/312(R)
+
+    The following devices can't be connected to 98NOTE:
+
+      · 8-inch Standard Floppy Disk Drive Unit (PC-9881, etc.)
+      · Digital RGB / Monologue CRT Display
+        (including any device that uses those ports)
+      · Analog RGB Color CRT Display (N5913L, PC-KD854, etc.)
+      * 
+
+• Notes On The Use Of Bus Connectors
+
+  In the case of a memory board:
+
+                 ___             |                         _____||
+                |   | <----------+- Micro Switch -------> []    ||
+                ||v||            |                        ]|    ||
+                || ||   +----+   |                       / |    ||
+                '| |'   | '' |   |                      /  ' ==[||     
+                 ( )    |['']| <-+- Jumper Switch -----+--> [__|||
+                        |_''_|   |                     '     ==[||          
+     ----------+                 |                     +---.____||             
+     :::::::::|| <---------------+- Expansion Slot --> |        ||
+     ----------+                 |  Connector          |___.----||    
+                                 |                              ||
+                                  \ Back Board
+
+                            _____||                        _____||
+                           []    ||                       []    ||
+                           ]|    ||                       ]|    ||
+  Switch OFF              / |    ||    Switch ON          /|    ||
+  (AB191=AB201-AB231 ->  /  ' ==[||    (AB191=AB191)---> / ' ==[||
+        =0000&AB191)    |    [__|||                     |   [__|||
+                        '     ==[||    Switch Bar-> +--+ '   ==[||
+                        +---.____||                 |  |---.____||
+                 =======|---     ||             =======|---     ||
+                        |___.----||                    |___.----||
+                                 ||                             ||
+    8086/70116 Exclusive Boards            New Memory Boards
+
+• Pin connection
+
+                B1-.                                      .-B50
+                  |                                      |
+              .---v-------------------//-----------------v---.
+              | o :::                //                ::: o |
+              '---^-----------------//-------------------^---'
+                  |                                      |
+                A1-'                                      '-A50
+
+• Positions Of Expansion Slots
+  
+  (Please refer to the raw document)
 
 ¤ Signal Overview
 
