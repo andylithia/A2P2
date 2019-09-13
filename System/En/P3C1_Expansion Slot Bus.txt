@@ -248,81 +248,194 @@
 
   In the case of a memory board:
 
-                 ___             |                         _____||
-                |   | <----------+- Micro Switch -------> []    ||
-                ||v||            |                        ]|    ||
-                || ||   +----+   |                       / |    ||
-                '| |'   | '' |   |                      /  ' ==[||     
-                 ( )    |['']| <-+- Jumper Switch -----+--> [__|||
-                        |_''_|   |                     '     ==[||          
-     ----------+                 |                     +---.____||             
-     :::::::::|| <---------------+- Expansion Slot --> |        ||
-     ----------+                 |  Connector          |___.----||    
-                                 |                              ||
-                                  \ Back Board
+                   ___             |                               _____||
+                  |   | <----------+- Micro Switch -------------> []    ||
+                  ||v||            |                              ]|    ||
+                  || ||   +----+   |                             / |    ||
+                  '| |'   | '' |   |                            /  ' ==[||     
+                   ( )    |['']| <-+- Jumper Switch -----------+--> [__|||
+                          |_''_|   |                           '     ==[||          
+       ----------+                 |                           +---.____||             
+       :::::::::|| <---------------+- Expansion Slot ------- > |        ||
+       ----------+                 |  Connector                |___.----||    
+                                   |                                    ||
+                                    \ Back Board      
+  
+                                  _____||                          _____||
+                                 []    ||                         []    ||
+                                 ]|    ||                         ]|    ||
+    Switch OFF                  / |    ||    Switch ON            /|    ||
+    (AB191 = AB201 ~ AB231 ->  /  ' ==[||    (AB191 = AB191)---> / ' ==[||
+           =  0000 & AB191)   |    [__|||                       |   [__|||
+                              '     ==[||    Switch Bar->   +--+ '   ==[||
+                              +---.____||                   |  |---.____||
+                       =======|---     ||               =======|---     ||
+                              |___.----||                      |___.----||
+                                       ||                               ||
+        8086/70116 Exclusive Boards               New Memory Boards
 
-                            _____||                        _____||
-                           []    ||                       []    ||
-                           ]|    ||                       ]|    ||
-  Switch OFF              / |    ||    Switch ON          /|    ||
-  (AB191=AB201-AB231 ->  /  ' ==[||    (AB191=AB191)---> / ' ==[||
-        =0000&AB191)    |    [__|||                     |   [__|||
-                        '     ==[||    Switch Bar-> +--+ '   ==[||
-                        +---.____||                 |  |---.____||
-                 =======|---     ||             =======|---     ||
-                        |___.----||                    |___.----||
-                                 ||                             ||
-    8086/70116 Exclusive Boards            New Memory Boards
+    When using an external CPU/DMA board on a PC-98XA or using a board that 
+    requires full 24-bit address decoding, the micro switch must be on.
 
-• Pin connection
+    For PC-98XA boards that don't have a "switch bar" (to turn on the micro
+    switch mechanically), user may select the correct mode by moving the 
+    jumper.
 
-                B1-.                                      .-B50
+• Pin Connection
+
+               B1-.                                      .-B50
                   |                                      |
               .---v-------------------//-----------------v---.
               | o :::                //                ::: o |
               '---^-----------------//-------------------^---'
                   |                                      |
-                A1-'                                      '-A50
+               A1-'                                                                                                                                                                                         --
 
-• Positions Of Expansion Slots
-  
+• Locations 
+
   (Please refer to the raw document)
 
 ¤ Signal Overview
 
   · AB001~AB191 Address Bus
 
+    The address bus is made up of AB001 ~ AB231, 24 bits in total, defining a
+    maximum addressing space of 16Mbyte.
+
+    However, older expansion boards designed for the PC-9800 series may not
+    decode AB201~AB231 properly. To deal with this problem, a micro switch that
+    is located at the bottom of the slot is introduced for models that has a
+    80286/386/486/Pentium CPU. When an old board is inserted, AB191 is
+    activated only when AB201~AB231=0.
+
+    When the micro switch (or the jumper switch) is in the "ON" position, the
+    original address signal is provided.(Neglected for the PC-98XA series)
+
+
   · BHE0 Bus High Enable
+
+    This signal indicates that the CPU is allowed to output data to the higher
+    part of the data bus or that the CPU is trying to access the device 
+    connected to the upper part.
+
+    AB001 is essentially the lower half counterpart.
+
 
   · DB001~DB151 Data Bus
 
+    The data bus is made up of DB001 ~ DB151, 16 bits in total.
+
+
   · IOR0 IO Read
+
+    I/O access strobe. In an I/O read cycle this signal is held low.
+
 
   · IOW0 IO Write
 
+    I/O access strobe. In an I/O write cycle this signal is held low.
+
+
   · MRC0 Memory Read
+
+    Memory access strobe. In an memory read cycle this signal is held low.
+
 
   · MWC0 Memory Write
 
+    Memory access strobe. In an memory write cycle this signal is held low.
+
+
   · MWE0 Memory Write Enable
+
+    When held low, expansion memory writing timing is supplied.
+
 
   · RFSH0 Refresh
 
+    When the bus is occupied by refreshing, this line is held low.
+
+
   · IR31,IR51,IR61(Master PIC), IR91,IR101,IR121,IR131(Slave PIC) Interrupt Req
   
+    The rising edge of such a request signal generates a maskable interrupt to
+    the CPU. The following table shows the interrupts of I/O devices connected 
+    to the expansion slot.
+
+    IR91,IR101,IR111,IR131 are reserved for several devices.
+    IR91 is an open-collector signal, while the others are driven by tri-state
+    drivers.
+
+                  +--------+-------------------------+-------+
+                  | Signal | Device                  | Note  |
+                  +--------+-------------------------+-------+
+                  | IR 31  |                         | INT 0 |
+                  | IR 51  |                         | INT 1 |
+                  | IR 61  |                         | INT 2 |
+                  | IR 91  | Hard Disk Drive         | INT 3 |
+                  | IR101  | 640kB Floppy Disk Drive | INT41 |
+                  | IR111  | 1MB Floppy Disk Drive   | INT42 |
+                  | IR121  |                         | INT 5 |
+                  | IR131  | Mouse                   | INT 6 |
+                  +--------+-------------------------+-------+
+
+
   · IOCHK0 Non-maskable Interrupt Signal
+
+      On the negative edge of this signal a non-maskable interrupt is signaled
+      to the CPU. Such non-maskable interrupts are fully implemented in
+      hardware and, in theory, can't be controlled by software. In practice,
+      this interrupt is used to detect a parity error in the extended memory
+      (during the reading process) and can be enabled / disabled by changing
+      the NMI-F/F to the corresponding state. (PC-9801U2 does not perform 
+      parity error detection).
+
+                    +---------+-------------------------+
+                    | Command | Function                |
+                    +---------+-------------------------+
+                    | OUT 52  | NMI F/F Set   (Enable)  |
+                    | OUT 50  |    "    Reset (Disable) |
+                    +---------+-------------------------+
+
+      Meanwhile, if the bit MCKEN in the system port (μPD8255A) is set to "1",
+      regardless of the status of the NMI F/F, an NMI event can be checked by
+      reading the bit EMCK1 or IMCK in the same system port.
+
 
   · INT0 (Maskable)Interrupt
 
+    The output signal INT of the interrupt controller (μPD8255A).
+    This signal is active low when the μPD8259A responds to any interrupt
+    request.
+
+
   · NMI0 (Non-maskable) Interrupt
+
+    This signal become active when a non-maskable interrupt occurs.
+
 
   · SCLK1 System Clock
 
+    CPU clock   8/16M Mode ........ 7.9872MHz
+                10/12/20M Mode .... 9.8304MHz
+                5M Mode ........... 4.9152MHz
+
+
   · S18CLK1 (307.2kHz)
+
+    This is the clock signal S18CLK1(307.2kHz) derived from the SCLK.
+
 
   · POWER0 Power Valid
 
+    This signal is active when the DC+5V power rail has reached +4.57V.
+
+
   · RESET0 Reset Signal
+
+    This signal is active when the DC+5V power rail has fallen under +4.57V or
+    the reset SW is pressed.
+
 
   · DRQ00,DRQ10,DRQ20,DRQ30 DMA Request
   · DACK00,DACK30 DMA Acknowledge
@@ -346,11 +459,17 @@
 
   · AB201~AB231 Address Bus
 
+
+
   · EXHRQ10/EXHRQ20 Hold Request Signal
+
     Bus request from an external CPU/DMA.
 
+
   · EXHLA10/EXHLA20 Hold Acknowledge Signal
+
     Bus request granted signal for the external CPU/DMA.
+
 
   · SBUSRQ1 Bus Release Request Signal
 
@@ -366,13 +485,19 @@
   during 8086/70116 CPU operation)
 
   · LOCK0 Lock Signal
+
     CPU lock
 
+
   · S00~S20 CPU Status Signal
-    CPU (Maximum Mode) status signal
+
+    CPU (Maximum Mode) status signal.
+
 
   · CPKILL0
+
     Internal CPU is off the bus. Address output prohibited.
+
 
   · RQ/GT0 Request/Grant Signal
 
@@ -380,8 +505,11 @@
 
   · HRQ00 Hold Request Signal
 
+
   · HLDA00 Hold Acknowledged
+
     The hold acknowledged signal from the CPU.
+
 
 1.2 [ DC Characteristics ]
 

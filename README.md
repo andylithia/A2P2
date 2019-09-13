@@ -11,4 +11,4 @@ All files are witten in 80-Column. Please read them using a monospaced editor an
 * [Dustman Project](http://www.hi-ho.ne.jp/~y-exp/dustman/index.htm)
 * [NEC PC98 Database](http://pc98.pulsethread.com/)
 * [radioc.dat](http://radioc.web.fc2.com/)
-
+* [Siliconpr0n.org - NEC die shots](https://siliconpr0n.org/archive/doku.php?id=tag:vendor_nec&do=showtag&tag=vendor_nec)
