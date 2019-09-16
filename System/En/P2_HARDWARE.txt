@@ -99,14 +99,14 @@
 
 ¤ Register Description
 
-    • Initial Command Word (ICW)
+  • Initial Command Word (ICW)
 
-    • Operation Command Word (OCW)
+  • Operation Command Word (OCW)
 
 
 1.3 [ Initialization Sequence ]
 
-    • μPD8259A Master Init
+  • μPD8259A Master Init
 
                       D7  D6  D5  D4  D3  D2  D1  D0
                      +---+---+---+---+---+---+---+---+
@@ -135,7 +135,7 @@
                                    |     '-- Data bus buffer mode
                                    '-------- Special free-nested mode
                                              (Allows nesting of IRQ services)
-    • μPD8259A Slave Init
+  • μPD8259A Slave Init
 
                       D7  D6  D5  D4  D3  D2  D1  D0
                      +---+---+---+---+---+---+---+---+
@@ -188,17 +188,81 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
                                 DMA CONTROLLER
 --------------------------------------------------------------------------------
 
-2.1 Specifications
+2.1 [ Specifications ]
 
     LSI Used ............... 8237AC Equivalent
     Channels ............... 4
     Transfer Mode .......... Single
-    Cascade Interconnect ... 
+    Cascade Interconnect ... Except Channel 0
     Data Width ............. 8-bit (16-bit in hi-res mode)
     Block Size (Max) ....... 64 KByte (128 KByte in hi-res mode)
-                             OMA transfer of G VRAM and T-VRAM isn't guaranteed
-                             OMA in VRAM "graphic charger mode" isn't possible
+                             DMA transfer of G-VRAM and T-VRAM is not guaranteed
+                             DMA in VRAM "graphic charger mode" is not possible
 
+¤ Address Range
+
+  • DMA Transfer Beyond 1MB
+
+¤ Channel Assignment
+  ...
+  +---------------------------+-----------+-----------+-----------+-----------+
+  |    Channel                |     0     |     1     |     2     |     3     |
+  +---------------------------+-----------+-----------+-----------+-----------+
+  | PC-9801/E/F1,2,3/M2,3/U2/ |           |  Memory   |           |           |
+  | VF2/VM0,2,4/UV2/VM21      |           | Refresh*1 |           |           |
+  +---------------+-----------+   HDD     +-----------+           |           |
+  | PC-9801T/DA/  | SW3-3 OFF |           | Not Avail.|  1MB FD   | 640KB FD  |
+  | DS/DX/CS/FA/  |           |           |           |           |           |
+  | FX/PC-9821Ap/ +-----------+-----------+-----------+           |           |
+  | As/Ae/Af/     | SW3-3 ON  |           | Internal  |           |           |
+  | PC-98GS       |           |  Unused   |   HDD     |           |           |
+  +---------------+-----------+           +-----------+-----------+-----------+
+  | PC-98XA 1,2,3/11,21,31    |           |  1MB FD   | 640KB FD  |   HDD     |
+  +---------------+-----------+-----------+-----------+-----------+-----------+
+  | PC-98XL 1,2,4 | Normal    |           |  Unused   |  1MB FD   |           |
+  |               +-----------+           +-----------+-----------+           |
+  | PC-98XL²      | Hi-Res    |           |  1MB FD   |  Unused   |           | 
+  +------+--------+--+--------+   HDD     +-----------+-----------+           |
+  |      |           | Normal |           | Not Avail.|  1MB FD   |           |
+  |      | SW3-3 OFF +--------+           +-----------+-----------+           |
+  | PC-  |           | Hi-Res |           |  1MB FD   | Not Avail.| 640KB FD  |
+  | 98RL +-----------+--------+-----------+-----------+-----------+           |
+  |  *2  |           | Normal |           | Int. HDD  |  1MB FD   |           |
+  |      | SW3-3 ON  +--------+  Unused   +-----------+-----------+           |
+  |      |           | Hi-Res |           |  1MB FD   | Int. HDD  |           |
+  +------+-----------+--------+-----------+-----------+-----------+           |
+  | Others                    |   HDD     |  Unused   |  1MB FD   |           |
+  +---------------------------+-----------+-----------+-----------+-----------+
+  | Priority                  |  High       <------------------->        Low  |
+  +---------------------------+-----------+-----------+-----------+-----------+
+
+    *1 Memory refresh is done in 64Kbyte chunks
+    *2 Toggling dip switch on this model swaps DMA channels, enables the       
+       internal HDD.
+
+  Differences in the expansion slot signal availability of different models is
+  shown below:
+
+           +------------------------------+-----+-----+-----+-----+
+           |       Channel                |  0  |  1  |  2  |  3  |
+           +------------------------------+-----+-----+-----+-----+
+           | PC-98XA model 1,2,3          |  Y  |  Y  |  Y  |  Y  |
+           |         model 11,21,31       |     |     |     |     |
+           +------------------------------+-----+-----+-----+-----+
+           | PC-9801E/F2,3/U2/VF2/VM0,2,4 |  Y  |  N  |  Y* |  Y  |
+           |        UV2/UV21/CV21/UV11    |     |     |     |     |
+           +------------------------------+-----+-----+-----+-----+
+           | Others                       |  Y  |  N  |  N  |  Y  |
+           +------------------------------+-----+-----+-----+-----+
+             * The signal appears only in the slot with the highest number.
+
+2.2 [ I/O Address and Commands ]
+
+¤ Command Overview
+
+¤ Register Description
+
+¤ Addendum
 
                                   CHAPTER 3
                                    
@@ -206,7 +270,7 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
                                      TIMER
 -------------------------------------------------------------------------------
 
-3.1 Specifications
+3.1 [ Specifications ]
 
     LSI Used ............... 8253C Equivalent
     Counter Width .......... 16-bit
@@ -217,22 +281,206 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
                                   CHAPTER 4
                                    
 -------------------------------------------------------------------------------
-                                 CALENDAR TIMER
+                                CALENDAR TIMER
 -------------------------------------------------------------------------------
 
 
                                   CHAPTER 5
                                    
 -------------------------------------------------------------------------------
-                                  SYSTEM BOARD
+                                SYSTEM  BOARD
 -------------------------------------------------------------------------------
 
 
                                   CHAPTER 6
                                    
 -------------------------------------------------------------------------------
-                                    KEYBOARD
+                                   KEYBOARD
 -------------------------------------------------------------------------------
+
+6.1 [ Specifications ]
+
+    Form ................... Separate type (Connected to the system by a cable)
+                             Integrated for the following models:
+                              PC-9801LT model 1, 2, 11, 21, 22
+                              PC-9801LV21, 22
+                              PC-9801LS2, 5
+                              PC-9801LX2, 4, 5, 5C
+                              98NOTE
+                             Optional Support for PC-9801P
+    Key Top ................ Model dependent, please refer to section 6.4
+    CAPS, Kana Lock ........ Model dependent, please refer to section 6.4 
+    LSI Used ............... Host Side     : μPD8251A Equivalent
+                             Keyboard Side : μPD8048 Equivalent
+    Signal ................. 6-pin: Earth, +5V, Signal Line, 3 Control Lines
+    Protocol ............... Asynchronous Serial Communication
+                               Baud Rate    : 19.2Kbps
+                               Data Length  : 8-bit
+                               Start Bit    : 1
+                               Stop Bit     : 1
+                               Parity       : ODD
+                               Signal Level : TTL
+    Data Generation ........ Key down generates "Make" data, 
+                             Key release generates "Break" data.
+                               If pressed for longer than 0.5sec, the keyboard
+                               automatically generates a series of Make/Break
+                               data. (The auto-repeat function)
+                               If multiple keys are pressed at once, the auto-
+                               repeat function does not generates data 
+                               according to the sequence the keys are pressed.
+  
+    PC-XL/XL²/RL has [F-11]~[F-15], [HOME] keys, but these keys are ignored by 
+    the BIOS in normal mode and thus cannot be used.
+
+¤ Keyboard Interface Block Diagram
+¤ Bit Serial Data Format
+¤ Data Format
+
+6.2 [ I/O Address & Commands ]
+
+6.3 [ Keyboard Type ]
+
+¤ Keyboard Identification
+
+  ...
+
+  • Action Flowchart
+                                    ( START )
+                                        |
+                                 +-------------+
+                                 || 3~10msec  ||
+                                 || Loop      ||
+                                 +-------------+
+      .-------------------------------->|
+      |                          +-------------+
+      |                          || Send KB   ||
+      |                          || Command   || 9Fh (KB Command)
+      |                          +-------------+
+      |  .----------------------------->|
+      |  |                       +-------------+
+      |  |                       || KB Data   || Timeout
+      |  |                       || Read      ||---------.
+      |  |                       +-------------+         |                     
+      |  |                              |                |
+      |  |                    NO  /-----------\          |
+      |  |          .------------/  DATA=ACK?  \         |
+      |  |          |            \             /         |
+      |  | YES/-----------\       \-----------/          |
+      '--)---/  DATA=NACK? \            | YES            |                |
+         |   \             /     +-------------+         |
+         |    \-----------/      || KB Data   || Timeout |
+         |          | NO         || Read      ||-------->|
+         |          |            +-------------+         |
+         |          |                   |                |
+         | NO /-----------\       /-----------\  NO      |
+         '---/   4 Times   \     /  DATA=A0h?  \-------->|
+             \   Already?  /     \             /         |
+              \-----------/       \-----------/          |
+                    |                   |          YES   |
+                    '-------------------)--------------->|
+                      YES               |                |
+                                 +-------------+         |
+                                 || KB Data   || Timeout |
+                                 || Read      ||-------->|
+                                 +-------------+         |
+                                        |                |
+                                  /-----------\  NO      |
+                                 /  DATA=80h?  \-------->|
+                                 \             /         |
+                                  \-----------/          |
+                                        | YES            |
+                                        |                |
+                                ( New Keyboard )  ( Old Keyboard ) 
+
+¤ Interfacing the Keyboard in Software
+    The keyboard of PC-9801RA,RX,LS,EX,ES,LX,RS,DX,DA,DS,CS,FA,FS,FX,US,BA,BX,
+  PC-9821,Ap,As,Ae,Ce,Af,PC-98GS can be controlled by software by using the RST
+  to issue a down command signal to the keyboard. (When executing software that 
+  uses this function in a multitasking environment, sufficient consideration 
+  must be given to the relationship with other software.)
+    The down command to the keyboard is issued by writing to the I/O port 41H.
+
+  +------------------------------+-------+----------+-------------------------+
+  | Command                      | Read/ | I/O Port |          Data           |
+  |                              | Write | Address  | D7 D6 D5 D4 D3 D2 D1 D0 |
+  +------------------------------+-------+----------+-------------------------+
+  | Keyboard Reset               |   W   |    41    | 0  0  0  0  0  0  0  0  |
+  +------------------------------+-------+----------+-------------------------+
+  | Keyboard Type Identification |   W   |    41    | 1  0  0  1  1  1  1  1  |
+  +------------------------------+-------+----------+-------------------------+
+  | LED Control                  |   W   |    41    | 1  0  0  1  1  1  0  1  |
+  +------------------------------+-------+----------+-------------------------+
+
+    When issuing a down command to the keyboard, it is necessary to consider 
+  the internal state of the keyboard. Depending on the internal processing of 
+  the keyboard, the response from the keyboard may be delayed, or depending on 
+  the timing, an unrelated key code may be sent in reply to a command.
+    The PC-9800 series keyboard is designed not to proceed processing until the
+  host has finished receiving the previous data transmitted. In newer models, 
+  especially, if the previous transmission is not finished, newer down command 
+  issued by the host is delayed, not executed by the keyboard until the data is 
+  collected. This behavior is the same for the reset command. Therefore, it is 
+  necessary to pay attention to the data collection process on the host's side.
+    When issuing a down command to the keyboard immediately after resetting the
+  keyboard, it must be transmitted between 3 and 10msec post resetting;
+  otherwise the keyboard may miss the message.
+    However, after 50msec post reset, down commands can be transmitted at
+  any time freely.
+
+  RST --.  .---------------------------------//-----------------------
+        |  |
+        '--'  Down cmd    Down cmd    Down command        Down command
+              prohibited  accepted    prohibited          accepted
+      -------|-----------|-----------|--------//---------|-------------
+             0           3           10                  50 (msec)
+  
+  • The Following Down Command Resets The Keyboard
+
+                         ( START )
+                             |
+                    +----------------+   I/O Port Command
+                    | Command        | 
+                    |   TEXN=1       |
+                    |   KBDE=1 Reset |   43h <- 37h
+                    +----------------+
+                             |
+                    +----------------+
+                    | Comm Data Out  |
+                    | (BK Reset Cmd) |   41h <- 00h
+                    +----------------+
+                             |
+                      +------------+
+                      | Loop Delay |
+                      |  ≥ 15μsec  |
+                      +------------+
+                .----------->|
+                |   +----------------+ 
+                |   |   8251 Status  |
+                |   |      Read      |
+                |   +----------------+ 
+                |            |
+                | NO  /-------------\
+                '--- /     Done      \
+                     \ Transmitting? /
+                      \-------------/
+                             | YES
+                    +----------------+ 
+                    | Command        | 
+                    |   TEXN=0       |
+                    |   KBDE=0 Reset |   43h <- 16h
+                    +----------------+
+                            |
+                      +------------+
+                      | Loop Delay |
+                      |  ≥ 438μsec |
+                      +------------+
+                            |
+                         ( END )
+
+¤ CAPS, カナ Key Software Control
+  • Action Flowchart
+
+6.4 [ Key Arrangement and Key Code ]
 
 
                                   CHAPTER 7
@@ -241,27 +489,27 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
                                   CRT DISPLAY
 -------------------------------------------------------------------------------
 
-7.1 Specification
+7.1 [Specification]
 
 ¤ Normal Mode
 
-    • 16 Color Mode
+  • 16 Color Mode
 
-        VSync Freq ......... 24.8kHz/31.5kHz*
-        Field Scan Mode .... Not-interlaced
-        Scan Mode .......... Under Scan
-        Coordinate System .. Standard Graphics            640 x 200/400 2 Plane
-                             Extended Graphics            640 x 400 
-                                               ( 16-color palette out of 4096 )
-                             Text Mode                    80 Col x 20/25 Line
-                                               ( 16 x 16 dot, 8 color available
-                                                 per character )
-                             ( Graphics can only in one of the two modes )
-        Output ............. Analog RGB, Digital RGB, Mono
+      VSync Freq ......... 24.8kHz/31.5kHz*
+      Field Scan Mode .... Not-interlaced
+      Scan Mode .......... Under Scan
+      Coordinate System .. Standard Graphics            640 x 200/400 2 Plane
+                           Extended Graphics            640 x 400 
+                                             ( 16-color palette out of 4096 )
+                           Text Mode                    80 Col x 20/25 Line
+                                             ( 16 x 16 dot, 8 color available
+                                               per character )
+                           ( Graphics can only in one of the two modes )
+      Output ............. Analog RGB, Digital RGB, Mono
 
-        * PC-9821 Ap, As, Ae, Af scans in 31.5kHz
+      * PC-9821 Ap, As, Ae, Af scans in 31.5kHz
 
-    • 256 Color Mode
+  • 256 Color Mode
 
 ¤ High-res Mode
 
@@ -281,7 +529,7 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
 
 ¤ Resolution Identification
 
-7.2 Text Mode
+7.2 [Text Mode]
 
 ¤ Overview
 
@@ -295,7 +543,7 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
 
 ¤ Cursor　
 
-7.3 Graphic Display
+7.3 [Graphic Display]
 
 ¤ Overview
 
@@ -303,7 +551,7 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
 
 ¤ Graphic VRAM ( Hi-res Mode )
 
-7.4 I/O Address & Commands
+7.4 [I/O Address & Commands]
 
 ¤ Text Display Control
 
@@ -345,7 +593,7 @@ B. This feature is disabled (together with NMI) by setting bit D4 on port C.
 
 ¤ Plasma Display ( Normal Mode )
 
-7.5 256 Color Mode
+7.5 [256 Color Mode]
 
 ¤ 256- Color Format
 
